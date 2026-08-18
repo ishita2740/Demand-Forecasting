@@ -2,6 +2,35 @@ import { useState } from "react";
 import type { AppPage } from "./types/app.types";
 import { DemandForecasting } from "./pages/DemandForecasting";
 import CreateForecast from "./pages/CreateForecast";
+import { Sidebar } from "./components/layout/Sidebar";
+import { Header } from "./components/layout/Header";
+
+function PlaceholderPage({ activePage, onNavigate }: { activePage: AppPage, onNavigate: (page: AppPage) => void }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const titles: Record<string, string> = {
+    dashboard: "Dashboard",
+    inventory: "Inventory",
+    simulation: "Simulation",
+    analytics: "Analytics",
+    aiAssistant: "AI Assistant"
+  };
+  return (
+    <div className="min-h-screen bg-background text-on-surface">
+      <Sidebar isOpen={isOpen} onClose={() => setIsOpen(false)} activePage={activePage} onNavigate={onNavigate} />
+      <main className="min-h-screen lg:ml-[240px]">
+        <Header title={titles[activePage as string] || "Coming Soon"} onMenuClick={() => setIsOpen(true)} showSearch={false} />
+        <div className="p-8">
+          <div className="rounded-xl border border-dashed border-outline-variant/40 bg-surface-container-low px-6 py-10 text-center">
+            <p className="text-sm font-semibold text-on-surface">Coming Soon</p>
+            <p className="mt-1 text-sm text-on-surface-variant">
+              This module is under development.
+            </p>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
 
 /**
  * Standalone Demand Forecasting App
@@ -17,12 +46,7 @@ export default function App() {
   const [activePage, setActivePage] = useState<AppPage>("demandForecasting");
 
   const handleNavigate = (page: AppPage) => {
-    // Only handle the pages this standalone app knows about
-    if (page === "demandForecasting" || page === "createForecast") {
-      setActivePage(page);
-    }
-    // For any other page (inventory, procurement, etc.) — silently ignore.
-    // The Sidebar still shows those items but clicking them won't break anything.
+    setActivePage(page);
   };
 
   switch (activePage) {
@@ -35,9 +59,16 @@ export default function App() {
       );
 
     case "demandForecasting":
-    default:
       return (
         <DemandForecasting
+          activePage={activePage}
+          onNavigate={handleNavigate}
+        />
+      );
+
+    default:
+      return (
+        <PlaceholderPage 
           activePage={activePage}
           onNavigate={handleNavigate}
         />

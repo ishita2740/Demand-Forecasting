@@ -10,6 +10,9 @@ export type AppPage =
   | "login"
   | "driverDashboard"
   | "retailerDashboard"
-  | "finishedStocks";
+  | "finishedStocks"
+  | "simulation"
+  | "analytics"
+  | "aiAssistant";
 
 // anything

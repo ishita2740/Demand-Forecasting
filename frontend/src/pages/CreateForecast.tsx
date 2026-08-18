@@ -2960,6 +2960,14 @@ const togglePreview = () => {
                             <button
                               type="button"
                               className="confirm-mapping demand-cta"
+                              onClick={(e) => { e.preventDefault(); e.stopPropagation(); fileInputRef.current?.click(); }}
+                              style={{ background: "#4f46e5", padding: "8px 16px", fontSize: "0.85rem" }}
+                            >
+                              📁 Upload CSV
+                            </button>
+                            <button
+                              type="button"
+                              className="confirm-mapping demand-cta"
                               onClick={(e) => { e.preventDefault(); e.stopPropagation(); loadSampleData(); }}
                               style={{ background: "#4f46e5", padding: "8px 16px", fontSize: "0.85rem" }}
                             >
