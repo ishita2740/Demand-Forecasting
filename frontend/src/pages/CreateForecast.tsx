@@ -3535,10 +3535,8 @@ const togglePreview = () => {
                         window.scrollTo({ top: 0, behavior: "smooth" });
                         setTimeout(() => {
                           setOverallForecastSection(null);
-                          setHasParsedData(false);
                           setDataSummary(null);
                           setUploadedFileName("");
-                          setPreviewRows([]);
                           setColumns([]);
                           setCleanedRows([]);
                           setStatusMessage("");

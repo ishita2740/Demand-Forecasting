@@ -278,53 +278,7 @@ export default function ForecastOutput({
   const [aiModelUsed, setAiModelUsed] = useState<string | null>(null);
   const [externalContext, setExternalContext] = useState<string[]>([]);
 
-  // Expanded Simulation State
-  const [simDiscount, setSimDiscount] = useState(0);
-  const [simPriceChange, setSimPriceChange] = useState(0);
-  const [simMarketing, setSimMarketing] = useState(false);
-  const [simCompetitor, setSimCompetitor] = useState(false);
-  const [simWeather, setSimWeather] = useState<"neutral" | "favorable" | "unfavorable">("neutral");
-  const [simFestival, setSimFestival] = useState(false);
-  const [simulationActive, setSimulationActive] = useState(false);
 
-  // Derived Simulation Stats
-  const simulation = useMemo(() => {
-    let multiplier = 1.0;
-    
-    // 1. Discount Elasticity (~1.5x)
-    multiplier += (simDiscount / 100) * 1.5;
-    
-    // 2. Price Change Elasticity (Price up -> Demand down, Inverse 1.2x)
-    multiplier -= (simPriceChange / 100) * 1.2;
-    
-    // 3. Marketing Campaign lift
-    if (simMarketing) multiplier += 0.18;
-    
-    // 4. Competitor Entry drag
-    if (simCompetitor) multiplier -= 0.15;
-    
-    // 5. Weather impact
-    if (simWeather === "favorable") multiplier += 0.10;
-    if (simWeather === "unfavorable") multiplier -= 0.10;
-    
-    // 6. Festival surge
-    if (simFestival) multiplier += 0.35;
-
-    const original = (section.metrics && section.metrics.totalForecast) || 0;
-    const simulated = original * multiplier;
-    const lift = simulated - original;
-    const pct = (multiplier - 1) * 100;
-
-    // Generate comparison points for the mini-graph
-    const forecastArr = (section.smart && section.smart.forecast) || [];
-    const comparisonPoints = forecastArr.map(p => ({
-      date: p.date,
-      base: p.forecast,
-      sim: p.forecast * multiplier
-    }));
-
-    return { total: simulated, lift, pct, multiplier, comparisonPoints };
-  }, [simDiscount, simPriceChange, simMarketing, simCompetitor, simWeather, simFestival, section.metrics?.totalForecast, section.smart?.forecast]);
 
   const fetchAiExplanation = async () => {
     setIsExplaining(true);
@@ -632,99 +586,7 @@ export default function ForecastOutput({
           </div>
         )}
 
-      <div className="forecast-flow-panel simulation-engine" style={{ marginTop: 24, padding: "24px", background: "#ffffff", borderRadius: 16, border: "1px solid #e2e8f0", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)" }}>
-        <div className="forecast-section-header" style={{ marginBottom: 24, borderBottom: "1px solid #f1f5f9", paddingBottom: 16 }}>
-          <div>
-            <h3 style={{ margin: "2px 0 4px", fontSize: "1.45rem", fontWeight: 700, color: "#0f172a" }}>🎯 Business Scenario Simulator</h3>
-            <p className="forecast-section-subtitle">
-              Model complex business decisions and external events to see their net impact on supply chain demand.
-            </p>
-          </div>
-        </div>
 
-        <div className="simulation-controls" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "20px", marginBottom: 24 }}>
-          <label className="config-field" style={{ padding: "16px", background: "#f8fafc", border: "1px solid #cbd5e1", borderRadius: "12px", boxShadow: "inset 0 2px 4px 0 rgba(0, 0, 0, 0.05)" }}>
-            <span>Price Change (%)</span>
-            <input 
-              type="number" 
-              value={simPriceChange} 
-              onChange={(e) => { setSimPriceChange(Number(e.target.value)); setSimulationActive(false); }}
-              placeholder="e.g. 5 for 5% increase"
-            />
-            <small className="mapping-helper">Positive = Price Up = Lower Demand</small>
-          </label>
-          <label className="config-field" style={{ padding: "16px", background: "#f8fafc", border: "1px solid #cbd5e1", borderRadius: "12px", boxShadow: "inset 0 2px 4px 0 rgba(0, 0, 0, 0.05)" }}>
-            <span>Discount (%)</span>
-            <input 
-              type="number" 
-              value={simDiscount} 
-              onChange={(e) => { setSimDiscount(Number(e.target.value)); setSimulationActive(false); }}
-              placeholder="0"
-              min="0"
-            />
-          </label>
-          <label className="config-field" style={{ padding: "16px", background: "#f8fafc", border: "1px solid #cbd5e1", borderRadius: "12px", boxShadow: "inset 0 2px 4px 0 rgba(0, 0, 0, 0.05)" }}>
-            <span>Marketing Campaign</span>
-            <select value={simMarketing ? "yes" : "no"} onChange={(e) => { setSimMarketing(e.target.value === "yes"); setSimulationActive(false); }}>
-              <option value="no">No Extra Promotion</option>
-              <option value="yes">Aggressive Campaign (+18%)</option>
-            </select>
-          </label>
-          <label className="config-field" style={{ padding: "16px", background: "#f8fafc", border: "1px solid #cbd5e1", borderRadius: "12px", boxShadow: "inset 0 2px 4px 0 rgba(0, 0, 0, 0.05)" }}>
-            <span>Competitor Entry</span>
-            <select value={simCompetitor ? "yes" : "no"} onChange={(e) => { setSimCompetitor(e.target.value === "yes"); setSimulationActive(false); }}>
-              <option value="no">Stable Market</option>
-              <option value="yes">New Competitor (-15%)</option>
-            </select>
-          </label>
-          <label className="config-field" style={{ padding: "16px", background: "#f8fafc", border: "1px solid #cbd5e1", borderRadius: "12px", boxShadow: "inset 0 2px 4px 0 rgba(0, 0, 0, 0.05)" }}>
-            <span>Weather Impact</span>
-            <select value={simWeather} onChange={(e) => { setSimWeather(e.target.value as any); setSimulationActive(false); }}>
-              <option value="neutral">Neutral Condition</option>
-              <option value="favorable">Favorable Forecast (+10%)</option>
-              <option value="unfavorable">Unfavorable Forecast (-10%)</option>
-            </select>
-          </label>
-          <label className="config-field" style={{ padding: "16px", background: "#f8fafc", border: "1px solid #cbd5e1", borderRadius: "12px", boxShadow: "inset 0 2px 4px 0 rgba(0, 0, 0, 0.05)" }}>
-            <span>External Festival</span>
-            <select value={simFestival ? "yes" : "no"} onChange={(e) => { setSimFestival(e.target.value === "yes"); setSimulationActive(false); }}>
-              <option value="no">Regular Period</option>
-              <option value="yes">Major Holiday/Festival (+35%)</option>
-            </select>
-          </label>
-        </div>
-
-        <div style={{ display: "flex", justifyContent: "center", marginBottom: 24 }}>
-          <button 
-            type="button" 
-            className="demand-cta" 
-            style={{ width: "fit-content", padding: "12px 32px", borderRadius: "30px", fontSize: "1rem" }}
-            onClick={() => setSimulationActive(true)}
-          >
-            {simulationActive ? "Recalculate Scenario" : "Show Simulated Output"}
-          </button>
-        </div>
-
-        {simulationActive && (
-          <div className="simulation-results-container" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 24, animation: "fadeIn 0.4s ease-out" }}>
-            <div style={{ padding: 24, background: "#f0f9ff", borderRadius: 16, border: "1px solid #bae6fd", textAlign: "center", boxShadow: "0 2px 10px rgba(3, 105, 161, 0.05)" }}>
-               <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "#0369a1", textTransform: "uppercase", letterSpacing: "0.05em" }}>Simulated Forecast</span>
-               <div style={{ fontSize: "2.5rem", fontWeight: 900, color: "#0c4a6e", margin: "8px 0" }}>{fmtNumber(simulation.total)}</div>
-               <div style={{ fontSize: "0.95rem", color: "#0369a1" }}>Estimated total units over horizon</div>
-            </div>
-               
-            <div style={{ padding: 24, background: simulation.pct >= 0 ? "#f0fdf4" : "#fef2f2", borderRadius: 16, border: `1px solid ${simulation.pct >= 0 ? "#bbf7d0" : "#fecaca"}`, textAlign: "center", boxShadow: `0 2px 10px ${simulation.pct >= 0 ? "rgba(22, 101, 52, 0.05)" : "rgba(153, 27, 27, 0.05)" }}` }}>
-               <span style={{ fontSize: "0.85rem", fontWeight: 700, color: simulation.pct >= 0 ? "#166534" : "#991b1b", textTransform: "uppercase", letterSpacing: "0.05em" }}>Impact Summary</span>
-               <div style={{ fontSize: "2.5rem", fontWeight: 900, color: simulation.pct >= 0 ? "#166534" : "#991b1b", margin: "8px 0" }}>
-                 {simulation.pct >= 0 ? "+" : ""}{simulation.pct.toFixed(1)}%
-               </div>
-               <div style={{ fontSize: "0.95rem", color: simulation.pct >= 0 ? "#166534" : "#991b1b" }}>
-                 {simulation.lift >= 0 ? "Potential Increase" : "Potential Decrease"} of **{fmtNumber(Math.abs(simulation.lift))}** units
-               </div>
-            </div>
-          </div>
-        )}
-      </div>
     </>
   );
 }

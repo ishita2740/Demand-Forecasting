@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { AppPage } from "./types/app.types";
 import { DemandForecasting } from "./pages/DemandForecasting";
 import CreateForecast from "./pages/CreateForecast";
+import { Simulation } from "./pages/Simulation";
 import { Sidebar } from "./components/layout/Sidebar";
 import { Header } from "./components/layout/Header";
 
@@ -61,6 +62,14 @@ export default function App() {
     case "demandForecasting":
       return (
         <DemandForecasting
+          activePage={activePage}
+          onNavigate={handleNavigate}
+        />
+      );
+
+    case "simulation":
+      return (
+        <Simulation
           activePage={activePage}
           onNavigate={handleNavigate}
         />
